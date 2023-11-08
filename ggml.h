@@ -215,7 +215,7 @@
 
 #define GGML_MAX_DIMS          4
 #define GGML_MAX_NODES         16384
-#define GGML_MAX_PARAMS        1024
+#define GGML_MAX_PARAMS        8192  // bumped from 1024 as llama-70b exceeds 1024 params
 #define GGML_MAX_CONTEXTS      64
 #define GGML_MAX_SRC           6
 #define GGML_MAX_NAME          64
