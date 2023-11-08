@@ -1798,7 +1798,9 @@ int main(int argc, char ** argv) {
         "invalid");
 
     // allocate compute tensors
-    mem_compute_data.resize(max_compute_size);
+    // mem_compute_data.resize(max_compute_size);
+    mem_compute_data.resize(max_compute_size + 2703167328); // add 2GB to add buffer if ever memory block size allocation is insufficient
+
     ctx_compute = ggml_init(ctx_compute_params);
     alloc = ggml_allocr_new(mem_compute_data.data(), mem_compute_data.size(), tensor_alignment);
     gf = ggml_new_graph(ctx_compute);
