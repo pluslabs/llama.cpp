@@ -5,6 +5,11 @@
 #include <sstream>
 #include <functional>
 
+// magic: add wandb integration
+#include "wandb.h"
+#include <json.hpp>
+using json = nlohmann::json;
+
 struct random_normal_distribution {
     std::mt19937 gen;
     std::normal_distribution<float> rd;
@@ -1432,6 +1437,16 @@ void train_opt_callback(void * vdata, int accum_step, float * sched, bool * canc
             __func__, opt->iter, std::min(1+train->shuffle_next_sample, train->shuffle_sample_count), train->shuffle_sample_count,
             *sched, opt->loss_after);
 
+        // Run wandb_log to send train state
+        json log_params;
+        log_params["iter"] = opt->iter;
+        log_params["sample"] = std::min(1+train->shuffle_next_sample, train->shuffle_sample_count);
+        log_params["sample_count"] = train->shuffle_sample_count;
+        log_params["sched"] = *sched;
+        log_params["loss"] = opt->loss_after;
+        log_params["loss_before"] = opt->loss_before;
+        log_params["millis_per_iter"] = data->millis_per_iter;
+        wandb_log(log_params);
 
         if (data->millis_per_iter > 0) {
             printf(" dt=");

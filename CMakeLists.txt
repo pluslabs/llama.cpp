@@ -641,6 +641,9 @@ add_library(ggml OBJECT
             ${GGML_SOURCES_METAL} ${GGML_HEADERS_METAL}
             ${GGML_SOURCES_MPI} ${GGML_HEADERS_MPI}
             ${GGML_SOURCES_EXTRA} ${GGML_HEADERS_EXTRA}
+            # magic: add wandb linker
+            wandb.cpp
+            wandb.h
             )
 
 target_include_directories(ggml PUBLIC . ${LLAMA_EXTRA_INCLUDES})
