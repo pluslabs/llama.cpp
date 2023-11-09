@@ -89,6 +89,12 @@ int wandb_log(json logJson) {
 
     // Pipe in the command to call log_data wandb with the paramJsonString
     fprintf(pipe, "log_data %s\n", paramJsonString.c_str());
+
+    // Create a background thread for background_monitor_python_proc
+    std::thread backgroundThread(background_monitor_python_proc);
+
+    // Wait for the background thread to finish (optional)
+    backgroundThread.join();
     return 0;
 }
 
@@ -104,7 +110,14 @@ int wandb_finish() {
 
     fprintf(pipe, "finish\n");
 
+    // Create a background thread for background_monitor_python_proc
+    std::thread backgroundThread(background_monitor_python_proc);
+
+    // Wait for the background thread to finish (optional)
+    backgroundThread.join();
+
     // Close the pipe when done
     pclose(pipe);
+
     return 0;
 }

@@ -4,10 +4,16 @@ import sys
 
 def initialize_wandb(project_name, run_name, config):
     config_json = json.loads(config)
-    wandb.init(project=project_name, name=run_name, config=config_json)
+    global wandb_run
+    wandb_run = wandb.init(project=project_name, name=run_name, config=config_json)
 
 def log_data(data):
-    wandb.log(json.loads(data))
+    # Print data for debugging in color blue with prefix "wandb: "
+    print("\033[94mwandb: \033[0m" + data)
+    if wandb_run is None:
+        print("Error: wandb_run is not initialized")
+        return
+    wandb_run.log(json.loads(data))
 
 def finish_wandb_run():
     wandb.finish()
