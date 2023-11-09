@@ -1610,11 +1610,15 @@ static void send_wandb_run(struct train_params params) {
     j_params["custom_n_rank_output"] = params.custom_n_rank_output;
     j_params["n_rank_output"] = params.n_rank_output;
 
-    // Parse params.fn_lora_out to string
-    std::string fn_lora_out = params.fn_lora_out;
+    // Parse params.fn_lora_out to get last string after '/' and remove suffix 'ITERATION.bin'
+    // Ex. `models/llama-2-70b-magic-starter-20231109-ctx-128-ITERATION.bin` -> `llama-2-70b-magic-starter-20231109-ctx-128`
+    std::string run_name(params.fn_lora_out);
+    run_name = run_name.substr(run_name.find_last_of("/\\") + 1);
+    run_name = run_name.substr(0, run_name.find_last_of("."));
+    run_name = run_name.substr(0, run_name.find_last_of("-"));
 
     // Call wandb_init
-    wandb_init(fn_lora_out, j_params);
+    wandb_init(run_name, j_params);
 }
 
 
