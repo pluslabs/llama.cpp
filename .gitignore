@@ -101,4 +101,9 @@ tests/test-tokenizer-1-bpe
 
 # Wandb log files
 wandb/*
+
+# Debug build files
 Debug/*
+
+# Training data on local machine
+training-data/*
