@@ -195,7 +195,7 @@ size_t compute_samples_hash(
 
 std::string replace_str(const char * s, const char * needle, const char * replacement);
 
-void print_duration(double milliseconds);
+std::string print_duration(double milliseconds);
 
 float cosine_decay(
     int64_t step,

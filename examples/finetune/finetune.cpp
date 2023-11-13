@@ -1558,6 +1558,7 @@ static void send_wandb_run(struct train_params params) {
     j_params["common"] = {
         {"seed", params.common.seed},
         {"n_ctx", params.common.n_ctx},
+        {"n_batch", params.common.n_batch},
         {"n_gpu_layers", params.common.n_gpu_layers},
         {"n_threads", params.common.n_threads},
         {"opt_past", params.common.opt_past},

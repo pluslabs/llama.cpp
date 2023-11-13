@@ -386,10 +386,10 @@ std::string replace_str(const char * s, const char * needle, const char * replac
     return str;
 }
 
-void print_duration(double fmillis) {
+std::string print_duration(double fmillis) {
     if (fmillis < 1000.0f) {
         printf("%.1fms", (float) fmillis);
-        return;
+        return std::to_string(fmillis) + "ms";
     }
     const int64_t one_sec  = 1000;
     const int64_t one_min  = one_sec  * 60;
@@ -407,6 +407,9 @@ void print_duration(double fmillis) {
         printf("%lldd ", (long long int) days);
     }
     printf("%02lld:%02lld:%02lld", (long long int) hours, (long long int) minutes, (long long int) seconds);
+
+    // return friendly duration format as string showing days, hours, minutes and seconds
+    return (days > 0 ? std::to_string(days) + "d" : "") + std::to_string(hours) + ":" + std::to_string(minutes) + ":" + std::to_string(seconds);
 }
 
 float cosine_decay(int64_t step, int64_t decay_steps, float minimum) {
@@ -1381,6 +1384,8 @@ void train_opt_callback(void * vdata, int accum_step, float * sched, bool * canc
     struct ggml_opt_context        * opt    = train->opt;
     int n_batch = params->n_batch;
     int n_ctx = params->n_ctx;
+    // create new variable saving data->last_time
+    int64_t last_iter_time = int64_t(data->last_time);
 
     if (accum_step == 0) {
         // time measurement
@@ -1445,17 +1450,19 @@ void train_opt_callback(void * vdata, int accum_step, float * sched, bool * canc
         log_params["sched"] = *sched;
         log_params["loss"] = opt->loss_after;
         log_params["loss_before"] = opt->loss_before;
-        log_params["millis_per_iter"] = data->millis_per_iter;
-        wandb_log(log_params);
 
         if (data->millis_per_iter > 0) {
             printf(" dt=");
-            print_duration(data->millis_per_iter);
+            log_params["duration_millis_per_iter"] = data->millis_per_iter;
+            log_params["duration_per_iter"] = print_duration(data->millis_per_iter);
             printf(" eta=");
-            print_duration(remaining_millis);
+            log_params["remaining_time_millis"] = remaining_millis;
+            log_params["remaining_time"] = print_duration(remaining_millis);
         }
-
         float improvement = opt->loss_before - opt->loss_after;
+        log_params["improvement"] = improvement;
+
+        wandb_log(log_params);
         const float plot_scale = 10.0f;
         int bar_len = (int)(1 + improvement*plot_scale + 0.5);
         printf(" |");
@@ -1487,6 +1494,16 @@ void train_opt_callback(void * vdata, int accum_step, float * sched, bool * canc
 
     if (train->shuffle_next_sample >= train->shuffle_sample_count) {
         ++train->train_epochs;
+
+        // Run wandb_log to send epoch duration
+        json log_params;
+        // get time now minus last_iter_time to get total epoch time
+        int64_t now = ggml_time_ms();
+        int64_t epoch_time = now - last_iter_time;
+        log_params["epoch_duration_millis"] = epoch_time;
+        log_params["epoch_duration"] = print_duration(epoch_time);
+        wandb_log(log_params);
+        
         printf("%s: reshuffle samples. completed epochs: %llu\n", __func__, (long long unsigned) train->train_epochs);
         // note: we may have used some samples from the current shuffling more than once
         train->shuffle_rng_state_current = train->shuffle_rng_state_next;
