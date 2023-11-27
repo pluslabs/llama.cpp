@@ -7666,6 +7666,11 @@ static void llama_model_quantize_internal(const std::string & fname_inp, const s
         gguf_set_tensor_data(ctx_out, name.c_str(), new_data, new_size);
 
         // write tensor data + padding
+        /**
+         * TODO: (11/27/23)There is issue where tensor size(?)
+         * is not aligned causing it to throw an error in writing to file 
+         * This happens only for the last tensor (from a model with added vocab special tokens)
+         */
         fout.write((const char *) new_data, new_size);
         zeros(fout, GGML_PAD(new_size, align) - new_size);
     }
