@@ -859,8 +859,12 @@ class OutputFile:
     def add_meta_special_vocab(self, svocab: gguf.SpecialVocab) -> None:
         svocab.add_to_gguf(self.gguf)
 
-    def add_tensor_info(self, name: str, tensor: LazyTensor) -> None:
+    def add_tensor_info(self, name: str, tensor: LazyTensor, n_vocab: int) -> None:
+        # If name is 'token_embd.weight', update first value to match with n_vocab
+        if name == 'token_embd.weight':
+            tensor.shape[0] = n_vocab
         n_elements = int(np.prod(tensor.shape))
+
         raw_dtype = getattr(tensor.data_type, 'ggml_type', None)
         data_type = getattr(tensor.data_type, 'quantized_type', None) or tensor.data_type.dtype
         data_nbytes = tensor.data_type.elements_to_bytes(n_elements)
@@ -917,7 +921,7 @@ class OutputFile:
 
         # tensor info
         for name, lazy_tensor in model.items():
-            of.add_tensor_info(name, lazy_tensor)
+            of.add_tensor_info(name, lazy_tensor, vocab.vocab_size)
 
         of.write_meta()
         of.write_tensor_info()
